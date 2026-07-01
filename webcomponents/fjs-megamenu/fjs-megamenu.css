@@ -1,0 +1,325 @@
+/* fjs-megamenu — dark "mega menu" theme (top bar + drop panel, 1–3 levels).
+ * Modeled on the bato-web-agency CodePen reference. All colors are CSS
+ * variables on :root so the whole look is themeable from one place. */
+:root {
+  --bg:        #0a0d0e;   /* page background (darkest) */
+  --bg-glow:   #0e3b40;   /* corner radial glow tint */
+  --bar:       #181d20;   /* nav bar surface */
+  --panel:     #14181a;   /* dropdown panel surface */
+  --raise:     #20262a;   /* hovered/active row, badges */
+  --raise-2:   #1b2023;   /* card surface */
+  --border:    #262d31;   /* hairline borders */
+  --border-2:  #313a3f;   /* stronger border (focus rings on dark) */
+  --accent:    #25c9dd;   /* cyan accent: logo, active item, arrows */
+  --accent-dim:#1d9aa9;
+  --text:      #f4f7f8;   /* primary text */
+  --muted:     #8b959c;   /* secondary text */
+  --faint:     #67727a;   /* tiny labels, placeholders */
+  --radius-bar:  26px;
+  --radius-pan:  22px;
+  --radius-row:  12px;
+  --radius-card: 14px;
+  --font: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Light palette — applied (body.theme-light) when the GBC host theme is light */
+body.theme-light {
+  --bg: #ffffff; --bg-glow: #d8eef0; --bar: #f6f8fa; --panel: #ffffff;
+  --raise: #eef2f6; --raise-2: #f8fafc; --border: #e2e7eb; --border-2: #cfd6dc;
+  --text: #1c2733; --muted: #5a6672; --faint: #8a94a0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; overflow: hidden;
+  font: 14px/1.45 var(--font);
+  color: var(--text); background: var(--bg);
+  outline: none; -webkit-font-smoothing: antialiased;
+}
+body {
+  display: flex; flex-direction: column;
+  padding: 12px 18px 6px;          /* compact: bar sits near the top of the field */
+  position: relative;
+  background:
+    radial-gradient(60vw 55vh at 92% 4%,  color-mix(in srgb, var(--bg-glow) 60%, transparent), transparent 70%),
+    radial-gradient(55vw 50vh at 4% 96%,  color-mix(in srgb, var(--bg-glow) 45%, transparent), transparent 70%),
+    var(--bg);
+}
+
+/* ---- hero ----------------------------------------------------------------- */
+#hero { text-align: center; padding: 18px 12px 26px; flex: none; }
+#hero[hidden] { display: none; }
+#heroTitle {
+  font-size: clamp(22px, 3.2vw, 34px); font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--text);
+}
+#heroSub {
+  margin-top: 10px; color: var(--muted); font-size: clamp(13px, 1.3vw, 16px);
+  max-width: 720px; margin-left: auto; margin-right: auto;
+}
+
+/* ---- nav bar -------------------------------------------------------------- */
+#bar {
+  display: flex; align-items: center; gap: 18px; flex: none;
+  background: var(--bar); border: 1px solid var(--border);
+  border-radius: var(--radius-bar);
+  padding: 11px 20px; position: relative; z-index: 30;
+}
+#brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; flex: none; }
+#brandIcon { color: var(--accent); display: inline-flex; align-items: center; }
+#brandIcon[hidden] { display: none; }
+#brandIcon svg { width: 24px; height: 24px; display: block; }
+#brandIcon.brand-text { font-size: 24px; line-height: 1; }            /* emoji / letter logo */
+#brandIcon img.brand-img { height: 26px; width: auto; max-width: 150px; display: block; }
+#brandName { color: var(--text); }
+
+/* responsive "hamburger" — hidden on wide layouts, shown by the breakpoint below */
+#menuToggle {
+  display: none; align-items: center; justify-content: center; flex: none;
+  width: 40px; height: 40px; padding: 0; cursor: pointer;
+  color: var(--text); background: transparent;
+  border: 1px solid var(--border); border-radius: 10px;
+}
+#menuToggle:hover { background: var(--raise); }
+body.nav-open #menuToggle { color: var(--accent); background: var(--raise); border-color: var(--border-2); }
+
+/* topnav may scroll within itself rather than push the search/Recent off-screen */
+#topnav { list-style: none; display: flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+#topnav::-webkit-scrollbar { display: none; }
+.top {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; user-select: none;
+  color: var(--text); font-weight: 500; white-space: nowrap;
+}
+.top .chev { font-size: 10px; color: var(--muted); transition: transform .15s; }
+.top:hover { background: var(--raise); }
+.top.open { color: var(--accent); }
+.top.active { color: var(--accent); background: var(--raise); box-shadow: inset 0 0 0 1px var(--border-2); } /* keyboard focus cue */
+.top.open .chev { transform: rotate(180deg); color: var(--accent); }
+.top.disabled, .l2.disabled, .card.disabled { opacity: .4; cursor: default; pointer-events: none; }
+
+.bar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; flex: none; }
+
+#searchWrap {
+  display: flex; align-items: center; gap: 8px;
+  background: #11161800; border: 1px solid var(--border);
+  border-radius: 999px; padding: 7px 14px; min-width: 210px;
+  transition: border-color .15s, background .15s;
+}
+#searchWrap.focus { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+#searchWrap .search-ico { color: var(--muted); font-size: 13px; }
+#search {
+  border: none; outline: none; background: transparent; color: var(--text);
+  font: inherit; width: 100%; min-width: 60px;
+}
+#search::placeholder { color: var(--faint); }
+
+.barbtn {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  font: inherit; font-weight: 500; color: var(--text);
+  background: transparent; border: 1px solid transparent; border-radius: 999px;
+  padding: 8px 16px; white-space: nowrap;
+}
+.barbtn .arr { color: var(--muted); }
+.barbtn:hover { background: var(--raise); }
+#recentBtn { color: var(--muted); }
+#recentBtn.open { color: var(--accent); background: var(--raise); }
+#ctaBtn { border-color: var(--border-2); }
+#ctaBtn[hidden] { display: none; }
+
+/* ---- mega panel ----------------------------------------------------------- */
+#panel {
+  margin-top: 8px; flex: 1 1 auto; min-height: 0;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius-pan);
+  overflow: hidden; position: relative; z-index: 20;
+  /* expand / collapse animation */
+  opacity: 0; transform: translateY(-10px) scale(.99); transform-origin: top center;
+  transition: opacity .18s ease, transform .2s cubic-bezier(.2,.7,.3,1);
+}
+#panel.open { opacity: 1; transform: none; }
+#panel[hidden] { display: none; }
+#panelInner { display: flex; height: 100%; min-height: 0; }
+
+/* level-2 / level-3 reveal as the panel opens or a category is drilled */
+@keyframes mmReveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  #panel { transition: none !important; opacity: 1; transform: none; }
+  .card, .l2 { animation: none !important; }
+}
+/* test hook: ?noanim renders the settled (un-animated) state for screenshots */
+body.noanim #panel { transition: none; opacity: 1; transform: none; }
+body.noanim .card, body.noanim .l2 { animation: none; }
+
+.panel-label {
+  font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--faint); padding: 4px 6px 12px;
+}
+
+/* left column: level-2 categories */
+#col2 {
+  width: 340px; flex: none; border-right: 1px solid var(--border);
+  padding: 16px; overflow: auto;
+}
+#panel.mode-search #col2, #panel.mode-recent #col2 { display: none; }
+
+#l2list { display: flex; flex-direction: column; gap: 4px; }
+.l2 {
+  display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none;
+  padding: 10px 12px; border-radius: var(--radius-row); outline: none;
+  animation: mmReveal .18s ease both;
+}
+.l2:hover { background: color-mix(in srgb, var(--raise) 55%, transparent); }
+.l2.active { background: var(--raise); }
+.badge {
+  width: 38px; height: 38px; flex: none; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  background: var(--raise); border: 1px solid var(--border);
+}
+.l2-body { min-width: 0; flex: 1; }
+.l2-label { font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l2-desc { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l2 .go { color: var(--accent); opacity: 0; font-size: 15px; flex: none; }
+.l2.active .go, .l2:hover .go { opacity: 1; }
+.l2.leaf .go { opacity: 0; }              /* leaf rows select directly, no drill arrow */
+.l2.active.leaf .go { opacity: 1; }
+
+/* right area: level-3 content / search results / recents */
+#col3 { flex: 1 1 auto; min-width: 0; padding: 16px; overflow: auto; }
+
+#l3grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  align-content: start;
+}
+#panel.mode-search #l3grid, #panel.mode-recent #l3grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+/* level-3 / result / recent card */
+.card {
+  display: flex; flex-direction: column; gap: 4px; cursor: pointer; user-select: none;
+  background: var(--raise-2); border: 1px solid var(--border);
+  border-radius: var(--radius-card); padding: 0; overflow: hidden; outline: none;
+  animation: mmReveal .2s ease both;
+}
+.card:hover { border-color: var(--border-2); }
+.card.active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.card-art {
+  height: 60px; display: flex; align-items: center; justify-content: center;
+  font-size: 34px; border-bottom: 1px solid var(--border); background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, var(--raise-2)), var(--raise-2));
+}
+.card-body { padding: 12px 14px 14px; }
+.card-title { font-weight: 600; color: var(--text); }
+.card-desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.card-path { font-size: 11px; color: var(--accent); margin-top: 6px; letter-spacing: .02em; }
+.card mark { background: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--text); border-radius: 3px; padding: 0 1px; }
+
+#empty {
+  color: var(--faint); padding: 40px 12px; text-align: center; grid-column: 1 / -1;
+}
+
+/* big single "select this" card for a level-2 leaf with no children */
+.detail {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 18px;
+  background: var(--raise-2); border: 1px solid var(--border);
+  border-radius: var(--radius-card); padding: 22px; cursor: pointer;
+}
+.detail:hover, .detail.active { border-color: var(--accent); }
+.detail .badge { width: 54px; height: 54px; font-size: 26px; border-radius: 14px; }
+.detail-title { font-size: 18px; font-weight: 600; }
+.detail-desc { color: var(--muted); margin-top: 2px; }
+.detail .pick {
+  margin-left: auto; color: var(--bg); background: var(--accent);
+  font-weight: 600; border-radius: 999px; padding: 9px 18px; white-space: nowrap;
+}
+
+/* ---- overlay mode: only the bar takes layout space; the panel floats ------- */
+/* Toggled at runtime (body.overlay) when the widget is embedded same-origin and
+ * grows its own host <iframe> over the form. The page background goes
+ * transparent so only the bar + drop panel paint over the host content, and the
+ * status row is dropped so the bar is the sole always-on element. */
+body.overlay { background: var(--bg); padding: 6px 10px 0; }   /* themed (not transparent) */
+body.overlay #status { display: none; }
+body.overlay #panel {
+  flex: none; height: auto; max-height: 460px;
+  box-shadow: 0 20px 54px rgba(0, 0, 0, .5);
+}
+body.overlay.theme-light #panel { box-shadow: 0 20px 54px rgba(20, 30, 45, .20); }
+
+/* ---- status bar ----------------------------------------------------------- */
+#status {
+  display: flex; justify-content: space-between; gap: 12px; flex: none;
+  margin-top: auto;                /* keep the status row pinned to the bottom even when collapsed */
+  padding: 8px 6px 2px; font-size: 11px; color: var(--faint);
+  font-variant-numeric: tabular-nums; user-select: none;
+}
+#statR.ok { color: var(--accent); }
+#statR.warn { color: #e0a23c; }
+#statR.err { color: #e0594c; }
+
+/* ---- help card ------------------------------------------------------------ */
+#helpcard {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 60;  /* anchored under the bar, hero-agnostic */
+  background: #0f1416; color: var(--text); border: 1px solid var(--border-2);
+  border-radius: 12px; padding: 12px 14px; font-size: 12.5px; min-width: 260px;
+}
+#helpcard[hidden] { display: none; }
+.hc-head { display: flex; align-items: center; font-weight: 700; margin-bottom: 8px; }
+#helpclose { background: transparent; border: 1px solid var(--border-2); color: var(--text); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; }
+#helpcard table { border-collapse: collapse; width: 100%; }
+#helpcard td { padding: 3px 4px; vertical-align: top; }
+#helpcard td:first-child { white-space: nowrap; }
+kbd {
+  font: 11px "SFMono-Regular", ui-monospace, Menlo, monospace;
+  background: var(--raise); border: 1px solid var(--border-2); border-radius: 4px;
+  padding: 1px 6px; margin-right: 3px; color: var(--text);
+}
+.spacer { flex: 1; }
+
+/* ---- responsive: collapse the bar to a single menu button ----------------- */
+/* Below this width the top bar can't hold the brand, all the menus AND the
+ * search at once, so it folds to a hamburger; the menu items and the search box
+ * drop into a stacked drawer that opens when the button is pressed. */
+@media (max-width: 760px) {
+  body { padding: 14px 14px 8px; }
+
+  #bar { flex-wrap: wrap; row-gap: 12px; padding: 12px 16px; }
+  #menuToggle { display: inline-flex; order: 1; margin-left: auto; }
+
+  /* collapsed by default: only the brand + the toggle show on the top row */
+  #topnav, .bar-right { display: none; }
+
+  /* the drawer — revealed by body.nav-open (set when the toggle is pressed) */
+  body.nav-open .bar-right {
+    display: flex; order: 2; flex-basis: 100%;
+    flex-direction: column; align-items: stretch; gap: 10px; margin-left: 0;
+  }
+  body.nav-open #searchWrap { min-width: 0; width: 100%; }
+  body.nav-open #recentBtn { justify-content: flex-start; }
+
+  body.nav-open #topnav {
+    display: flex; order: 3; flex-basis: 100%;
+    flex-direction: column; align-items: stretch; gap: 4px; overflow: visible;
+  }
+  body.nav-open #topnav li { width: 100%; }
+  body.nav-open #topnav .top { width: 100%; padding: 12px 14px; }
+  body.nav-open #topnav .top .chev { margin-left: auto; }
+
+  /* the help card spans the bar width on small screens */
+  #helpcard { left: 0; right: 0; min-width: 0; }
+
+  /* mega panel: single column — categories stacked above the actions */
+  #panelInner { flex-direction: column; }
+  #col2 {
+    width: 100%; flex: none; border-right: none;
+    border-bottom: 1px solid var(--border); max-height: 40vh; padding: 16px;
+  }
+  #col3 { padding: 16px; }
+  #l3grid,
+  #panel.mode-search #l3grid,
+  #panel.mode-recent #l3grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;
+  }
+}

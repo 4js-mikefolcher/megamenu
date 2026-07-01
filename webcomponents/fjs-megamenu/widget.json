@@ -1,0 +1,29 @@
+{
+  "name": "fjs-megamenu",
+  "version": "1.1.0",
+  "componentType": "fjs-megamenu",
+  "class": "navigation",
+  "summary": "Dark 'mega menu': a top bar (level 1) + drop panel with a categories column (level 2) and action cards (level 3). Backend-driven 1-3 level tree, full-menu search, keyboard nav, and a cookie-backed Recent group.",
+  "entry": "fjs-megamenu.html",
+  "vendored": [],
+  "examples": ["examples/ex_megamenu.4gl"],
+  "properties": {
+    "title":        { "type": "string", "default": "",                  "desc": "Hero title above the bar (empty = no hero)." },
+    "subtitle":     { "type": "string", "default": "",                  "desc": "Hero subtitle." },
+    "brand":        { "type": "string", "default": "menu",              "desc": "Logo text in the bar." },
+    "brandicon":    { "type": "string", "default": "",                  "desc": "Brand mark: emoji/letter, image URL/path, or 'none'. Unset = the built-in Four Js '4' badge." },
+    "select":       { "type": "string", "default": "menu_select",       "desc": "Lowercase ON ACTION name fired when a leaf action is chosen." },
+    "placeholder":  { "type": "string", "default": "Search…",       "desc": "Search box placeholder." },
+    "recentslabel": { "type": "string", "default": "Recently Selected", "desc": "Header for the Recent panel." },
+    "recentsmax":   { "type": "string", "default": "6",                 "desc": "Max recents kept/shown." },
+    "recentscookie":{ "type": "string", "default": "fjs_megamenu_recents","desc": "Cookie name storing recent leaf ids." },
+    "showrecents":  { "type": "string", "default": "true",              "desc": "Show the Recent button (true/1/on/yes)." },
+    "theme":        { "type": "string", "default": "auto",              "desc": "'auto' follows the GBC host theme (light/dark); or force 'dark'/'light'." },
+    "accent":       { "type": "string", "default": "",                  "desc": "Accent color override (e.g. #16b1a5); empty = taken from the GBC theme." },
+    "overlay":      { "type": "string", "default": "auto",              "desc": "'auto' floats the drop panel over the host content (bar-only footprint) when embedded same-origin; 'off' keeps the in-flow layout." }
+  },
+  "protocol": {
+    "in":  "{\"type\":\"menu\",\"items\":[{\"id\",\"label\",\"icon\",\"children\":[{\"id\",\"label\",\"desc\",\"icon\",\"color\",\"keywords\",\"children\":[{\"id\",\"label\",\"desc\",\"icon\",\"keywords\"}]}]}]}",
+    "out": "{\"type\":\"select\",\"id\":\"sales.cust.new\",\"label\":\"New Customer\",\"path\":\"Sales › Customers\"}"
+  }
+}

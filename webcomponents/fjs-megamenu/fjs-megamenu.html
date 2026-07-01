@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fjs-megamenu</title>
+<link rel="stylesheet" href="fjs-megamenu.css">
+</head>
+<body tabindex="-1">
+
+<section id="hero" hidden>
+  <h1 id="heroTitle"></h1>
+  <p id="heroSub"></p>
+</section>
+
+<nav id="bar">
+  <div id="brand">
+    <span id="brandIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none">
+      <rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="currentColor"/>
+      <path d="M13 6.5v11M13 6.5L7.5 13.7h7.8" stroke="#0a0d0e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg></span><span id="brandName">menu</span>
+  </div>
+  <button id="menuToggle" type="button" tabindex="-1" aria-label="Menu" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+      <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <ul id="topnav"><!-- level-1 items render here --></ul>
+  <div class="bar-right">
+    <div id="searchWrap">
+      <span class="search-ico">⌕</span>
+      <input id="search" type="text" autocomplete="off" autocapitalize="off"
+             autocorrect="off" spellcheck="false" placeholder="Search…">
+    </div>
+    <button id="recentBtn" class="barbtn" type="button" tabindex="-1">
+      <span>🕘</span><span id="recentLabel">Recent</span>
+    </button>
+    <button id="ctaBtn" class="barbtn" type="button" tabindex="-1" hidden></button>
+  </div>
+
+  <div id="helpcard" hidden>
+    <div class="hc-head">Keyboard<span class="spacer"></span><button id="helpclose" type="button" tabindex="-1">×</button></div>
+    <table>
+      <tr><td><kbd>type</kbd></td><td>search the whole menu</td></tr>
+      <tr><td><kbd>←</kbd><kbd>→</kbd></td><td>move along the top bar</td></tr>
+      <tr><td><kbd>↓</kbd> / <kbd>Enter</kbd></td><td>open a menu / drill in</td></tr>
+      <tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>move within a column / list</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>select the highlighted action</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>back out / close</td></tr>
+      <tr><td><kbd>Tab</kbd></td><td>cycle focus (stays in widget)</td></tr>
+      <tr><td><kbd>F1</kbd></td><td>toggle this help</td></tr>
+    </table>
+  </div>
+</nav>
+
+<div id="panel" hidden class="mode-browse">
+  <div id="panelInner">
+    <div id="col2">
+      <div class="panel-label" id="col2Label">Categories</div>
+      <div id="l2list"><!-- level-2 rows --></div>
+    </div>
+    <div id="col3">
+      <div class="panel-label" id="col3Label"></div>
+      <div id="l3grid"><!-- level-3 cards / results / recents --></div>
+    </div>
+  </div>
+</div>
+
+<div id="status">
+  <span id="statL">loading…</span>
+  <span id="statR">waiting for host…</span>
+</div>
+
+<script src="fjs-megamenu.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+LAYOUT (TEXT="Genero MegaMenu Demo", MINWIDTH=110, MINHEIGHT=24)
+VBOX
+  -- The mega menu. The field only needs the BAR's height: when a menu opens the
+  -- widget grows its own host frame and FLOATS the drop panel over the page body
+  -- below (overlay mode, on by default when embedded same-origin). ~5 rows fits
+  -- the bar comfortably; the panel itself reserves no vertical space.
+  GRID
+  {
+  [wc                                                                          ]
+  [                                                                            ]
+  [                                                                            ]
+  [                                                                            ]
+  [                                                                            ]
+  }
+  END
+  -- The page body. These labels sit directly beneath the mega menu so you can
+  -- see how much vertical space the menu actually consumes.
+  GRID
+  {
+  Backend received: [lastsel                                                   ]
+
+  Page body starts here - the mega menu above should leave room for it:
+  Customer     [f1                                ]
+  Order ref    [f2                                ]
+  Status       [f3                                ]
+  }
+  END
+END
+END
+
+ATTRIBUTES
+WEBCOMPONENT wc = FORMONLY.menu_data,
+    COMPONENTTYPE = "fjs-megamenu",
+    PROPERTIES = (
+        brand       = "Four Js",
+        -- brandicon is optional: an emoji/letter ("🚀"), an image URL/path
+        -- ("logo.png"), or "none". Unset = the built-in Four Js "4" badge.
+        -- brandicon = "🚀",
+        accent      = "#16b1a5",
+        placeholder = "Search the menu...",
+        select      = "menu_select"
+    ),
+    SIZEPOLICY = FIXED,
+    SCROLLBARS = NONE,
+    STRETCH = X;
+
+EDIT lastsel = FORMONLY.lastsel TYPE VARCHAR, NOENTRY;
+EDIT f1      = FORMONLY.f1      TYPE VARCHAR, NOENTRY;
+EDIT f2      = FORMONLY.f2      TYPE VARCHAR, NOENTRY;
+EDIT f3      = FORMONLY.f3      TYPE VARCHAR, NOENTRY;
+END
