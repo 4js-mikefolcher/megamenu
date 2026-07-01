@@ -8,3 +8,9 @@
 
 # Logs
 *.log
+
+# AI files and directories
+.claude/
+.mcp.json
+CLAUDE.md
+
