@@ -176,6 +176,7 @@ fglrun menu.42m            # under GDC; or deploy as a GAS app for GBC
 | `menu(id, label, icon)` | a top-bar item (level 1) | Becomes the "current menu". |
 | `category(id, label, desc, icon, color, keywords)` | a category (level 2) | Added to the current menu; becomes the "current category". `color` tints the icon badge. |
 | `action(id, label, desc, icon, keywords)` | an action (level 3) | Added to the current category. |
+| `noRecent()` | — | Excludes the **last-added** item from "Recently Selected". Call right after its `menu()`/`category()`/`action()`. |
 | `build() RETURNS STRING` | — | Returns the JSON envelope to assign to the `WEBCOMPONENT` field. |
 
 Calls are order-sensitive: `category()` adds to the most recent `menu()`,
@@ -409,6 +410,18 @@ entry, even if the user's rights change. No backend code is needed; it is purely
 client-side. The cookie is scoped to the GAS origin (`path=/`, `SameSite=Lax`,
 ~1‑year lifetime).
 
+To keep a specific item **out** of Recent — e.g. a utility action like *Reload*
+or *Exit* placed on the bar — call `MegaMenu.noRecent()` immediately after the
+`menu()`/`category()`/`action()` that added it:
+
+```4gl
+CALL MegaMenu.menu("exit", "Exit", "🚪")
+CALL MegaMenu.noRecent()                 -- Exit is selectable but never recorded
+```
+
+Flagged items are still fully selectable; they are simply never written to the
+recents cookie (the node carries `"norecent":"1"` in the envelope).
+
 ---
 
 ## 12. Deployment notes
@@ -471,12 +484,13 @@ contract over the single `STRING` field is:
 ```
 host → widget : {"type":"menu","items":[ <node>, … ]}
                 node = { "id", "label", "icon"?, "desc"?, "color"?, "keywords"?,
-                         "children"?: [ <node>, … ] }
+                         "norecent"?, "children"?: [ <node>, … ] }
 widget → host : {"type":"select","id":"…","label":"…","path":"A > B"}
 ```
 
 `MegaMenu.build()` produces the first; `MegaMenu.parse()` reads the second. A
-node with no (or empty) `children` is a leaf. The widget de-dupes re-delivered
+node with no (or empty) `children` is a leaf. A leaf whose `"norecent"` is set
+(e.g. `"1"`) is selectable but is never added to the "Recent" list. The widget de-dupes re-delivered
 values and ignores echoed `select` envelopes, so it is safe with GBC's repeated
 field pushes and with multiple instances in one `DIALOG`.
 

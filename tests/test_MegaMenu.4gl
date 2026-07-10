@@ -21,6 +21,7 @@ MAIN
     CALL FglUnit.register("test_two_level_leaf",         FUNCTION test_two_level_leaf)
     CALL FglUnit.register("test_one_level_leaf",         FUNCTION test_one_level_leaf)
     CALL FglUnit.register("test_orphan_calls_are_ignored", FUNCTION test_orphan_calls_are_ignored)
+    CALL FglUnit.register("test_norecent_flag",          FUNCTION test_norecent_flag)
     CALL FglUnit.register("test_parse_selection",        FUNCTION test_parse_selection)
     CALL FglUnit.register("test_parse_empty_is_null",    FUNCTION test_parse_empty_is_null)
     CALL FglUnit.register("test_parse_bad_json_is_null", FUNCTION test_parse_bad_json_is_null)
@@ -95,6 +96,27 @@ PUBLIC FUNCTION test_one_level_leaf()
     CALL Assertions.assertEquals("help", env.items[3].id, "help menu")
     CALL Assertions.assertEqualsInt(0, env.items[3].children.getLength(),
         "a menu with no categories is a leaf (children = [])")
+END FUNCTION
+
+PUBLIC FUNCTION test_norecent_flag()
+    DEFINE env t_envelope
+    -- level-1: noRecent() flags the most-recently-added menu
+    CALL MegaMenu.menu("m1", "M1", "")
+    CALL MegaMenu.menu("m2", "M2", "")
+    CALL MegaMenu.noRecent()
+    -- level-3: noRecent() flags the most-recently-added action
+    CALL MegaMenu.menu("sales", "Sales", "")
+    CALL MegaMenu.category("sales.c", "C", "", "", "", "")
+    CALL MegaMenu.action("sales.c.a1", "A1", "", "", "")
+    CALL MegaMenu.action("sales.c.a2", "A2", "", "", "")
+    CALL MegaMenu.noRecent()
+    CALL util.JSON.parse(MegaMenu.build(), env)
+    CALL Assertions.assertNull(env.items[1].norecent, "unflagged level-1 has no norecent")
+    CALL Assertions.assertEquals("1", env.items[2].norecent, "flagged level-1 has norecent=1")
+    CALL Assertions.assertNull(env.items[3].children[1].children[1].norecent,
+        "unflagged level-3 action has no norecent")
+    CALL Assertions.assertEquals("1", env.items[3].children[1].children[2].norecent,
+        "flagged level-3 action has norecent=1")
 END FUNCTION
 
 PUBLIC FUNCTION test_orphan_calls_are_ignored()

@@ -23,7 +23,7 @@
     "overlay":      { "type": "string", "default": "auto",              "desc": "'auto' floats the drop panel over the host content (bar-only footprint) when embedded same-origin; 'off' keeps the in-flow layout." }
   },
   "protocol": {
-    "in":  "{\"type\":\"menu\",\"items\":[{\"id\",\"label\",\"icon\",\"children\":[{\"id\",\"label\",\"desc\",\"icon\",\"color\",\"keywords\",\"children\":[{\"id\",\"label\",\"desc\",\"icon\",\"keywords\"}]}]}]}",
+    "in":  "{\"type\":\"menu\",\"items\":[{\"id\",\"label\",\"icon\",\"norecent?\",\"children\":[{\"id\",\"label\",\"desc\",\"icon\",\"color\",\"keywords\",\"norecent?\",\"children\":[{\"id\",\"label\",\"desc\",\"icon\",\"keywords\",\"norecent?\"}]}]}]}",
     "out": "{\"type\":\"select\",\"id\":\"sales.cust.new\",\"label\":\"New Customer\",\"path\":\"Sales › Customers\"}"
   }
 }

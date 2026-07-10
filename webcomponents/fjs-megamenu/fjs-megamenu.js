@@ -613,8 +613,9 @@ function selectNode(node) {
   const rec = leafById[node.id];
   const pathStr = rec ? rec.pathStr : "";
   const label = node.label || node.id;
+  const skipRecent = !!((rec && rec.node && rec.node.norecent) || node.norecent);
   emit({ type: "select", id: node.id, label: label, path: pathStr }, OPTS.select);
-  pushRecent(node.id);
+  if (!skipRecent) pushRecent(node.id);   // items flagged norecent stay out of Recent
   setLocal("selected: " + (pathStr ? pathStr + " › " : "") + label);
   if (!hasHost()) setHost("demo — would fire ON ACTION " + OPTS.select, "warn");
   setNavOpen(false);                   // collapse the responsive drawer after a pick

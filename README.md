@@ -77,6 +77,7 @@ with no `category()` is a 1-level action; a `category()` with no `action()` is a
 | `menu(id, label, icon)` | Add a top-level menu (level 1). |
 | `category(id, label, desc, icon, color, keywords)` | Add a category to the current menu (level 2). |
 | `action(id, label, desc, icon, keywords)` | Add an action to the current category (level 3). |
+| `noRecent()` | Flag the last-added item so it is never stored in "Recently Selected" (e.g. Reload/Exit). |
 | `build() RETURNS STRING` | The JSON envelope to assign to the `WEBCOMPONENT` field. |
 | `parse(p_json) RETURNS (t_selection)` | Parse the selection envelope → record (`id`/`label`/`path`). |
 | `selectionId(p_json) RETURNS STRING` | Convenience: the selected id. |

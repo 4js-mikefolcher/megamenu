@@ -31,7 +31,8 @@ PUBLIC TYPE t_action RECORD
     label    STRING ATTRIBUTES(json_name = "label"),
     descr    STRING ATTRIBUTES(json_name = "desc"),
     icon     STRING ATTRIBUTES(json_name = "icon"),
-    keywords STRING ATTRIBUTES(json_name = "keywords")
+    keywords STRING ATTRIBUTES(json_name = "keywords"),
+    norecent STRING ATTRIBUTES(json_name = "norecent")
 END RECORD
 PUBLIC TYPE t_category RECORD
     id       STRING ATTRIBUTES(json_name = "id"),
@@ -40,12 +41,14 @@ PUBLIC TYPE t_category RECORD
     icon     STRING ATTRIBUTES(json_name = "icon"),
     color    STRING ATTRIBUTES(json_name = "color"),
     keywords STRING ATTRIBUTES(json_name = "keywords"),
+    norecent STRING ATTRIBUTES(json_name = "norecent"),
     children DYNAMIC ARRAY OF t_action ATTRIBUTES(json_name = "children")
 END RECORD
 PUBLIC TYPE t_menu RECORD
     id       STRING ATTRIBUTES(json_name = "id"),
     label    STRING ATTRIBUTES(json_name = "label"),
     icon     STRING ATTRIBUTES(json_name = "icon"),
+    norecent STRING ATTRIBUTES(json_name = "norecent"),
     children DYNAMIC ARRAY OF t_category ATTRIBUTES(json_name = "children")
 END RECORD
 
@@ -58,10 +61,12 @@ PUBLIC TYPE t_selection RECORD
 END RECORD
 
 PRIVATE DEFINE m_items DYNAMIC ARRAY OF t_menu
+PRIVATE DEFINE m_last_level INTEGER   -- level (1/2/3) of the last-added node, for noRecent()
 
 -- Reset the builder. Call before adding menus.
 PUBLIC FUNCTION clear()
     CALL m_items.clear()
+    LET m_last_level = 0
 END FUNCTION
 
 -- Add a top-level menu (level 1); it becomes the "current menu".
@@ -73,6 +78,7 @@ PUBLIC FUNCTION menu(p_id STRING, p_label STRING, p_icon STRING)
     LET m_items[n].id = p_id
     LET m_items[n].label = p_label
     LET m_items[n].icon = p_icon
+    LET m_last_level = 1
 END FUNCTION
 
 -- Add a category (level 2) under the current menu; it becomes the "current
@@ -90,6 +96,7 @@ PUBLIC FUNCTION category(p_id STRING, p_label STRING, p_desc STRING,
     LET m_items[g].children[c].icon = p_icon
     LET m_items[g].children[c].color = p_color
     LET m_items[g].children[c].keywords = p_keywords
+    LET m_last_level = 2
 END FUNCTION
 
 -- Add an action (level 3) under the current category.
@@ -107,6 +114,33 @@ PUBLIC FUNCTION action(p_id STRING, p_label STRING, p_desc STRING,
     LET m_items[g].children[c].children[k].descr = p_desc
     LET m_items[g].children[c].children[k].icon = p_icon
     LET m_items[g].children[c].children[k].keywords = p_keywords
+    LET m_last_level = 3
+END FUNCTION
+
+-- Exclude the LAST-added item (menu / category / action) from the widget's
+-- "Recently Selected" list. Call it immediately after the menu()/category()/
+-- action() that added the item. Handy for utility actions such as Reload/Exit.
+PUBLIC FUNCTION noRecent()
+    DEFINE g, c, k INTEGER
+    LET g = m_items.getLength()
+    IF g < 1 THEN RETURN END IF
+    CASE m_last_level
+        WHEN 1
+            LET m_items[g].norecent = "1"
+        WHEN 2
+            LET c = m_items[g].children.getLength()
+            IF c >= 1 THEN
+                LET m_items[g].children[c].norecent = "1"
+            END IF
+        WHEN 3
+            LET c = m_items[g].children.getLength()
+            IF c >= 1 THEN
+                LET k = m_items[g].children[c].children.getLength()
+                IF k >= 1 THEN
+                    LET m_items[g].children[c].children[k].norecent = "1"
+                END IF
+            END IF
+    END CASE
 END FUNCTION
 
 -- Number of top-level menus currently in the builder (handy for tests/guards).
