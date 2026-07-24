@@ -1,21 +1,34 @@
 {
   "name": "megamenu",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "fjs-megamenu: a dark/light, GBC-themed mega-menu web component (1-3 levels, type-ahead search, animated, cookie-backed recents) plus a user-friendly Genero BDL builder API.",
   "author": "Four Js <mifo@4js.com>",
   "license": "MIT",
   "repository": "https://github.com/4js-ai/fjs-megamenu",
-  "keywords": ["webcomponent", "menu", "megamenu", "navigation", "gicapi", "gbc", "fourjs"],
-  "root": "com/fourjs/megamenu",
-  "files": ["*.42m"],
-  "webcomponents": ["fjs-megamenu"],
-  "docs": ["README.md", "USERGUIDE.md"],
-  "dependencies": {
-    "fgl": {}
-  },
+  "keywords": [
+    "webcomponent",
+    "menu",
+    "megamenu",
+    "navigation",
+    "gicapi",
+    "gbc",
+    "fourjs"
+  ],
+  "dependencies": {},
   "devDependencies": {
     "fgl": {
       "fglunit": "^0.2.0"
     }
-  }
+  },
+  "root": "com/fourjs/megamenu",
+  "files": [
+    "*.42m"
+  ],
+  "docs": [
+    "README.md",
+    "USERGUIDE.md"
+  ],
+  "webcomponents": [
+    "fjs-megamenu"
+  ]
 }
