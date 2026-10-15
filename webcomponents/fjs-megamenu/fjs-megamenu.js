@@ -284,9 +284,9 @@ function syncOverlay() {
     } else {
       h = bar + 6;                // hamburger drawer only — fit the bar + drawer
     }
-    if (helpOpen) {               // layout-based bottom of the card (its offsetParent is the bar)
-      const b = $("bar");
-      h = Math.max(h, Math.ceil(b.offsetTop + elHelp.offsetTop + elHelp.offsetHeight + 10));
+    if (helpOpen) {               // fit the card to the host space, then grow the frame to its bottom
+      const top = fitHelp(avail);
+      h = Math.max(h, Math.ceil(top + elHelp.offsetHeight + 16));   // + room for its shadow
     }
     frameEl.style.height = Math.min(h, avail) + "px";
     // scrollIntoView (markCard/markL2) can scroll the bar off the top while the
@@ -653,7 +653,16 @@ function toggleNav() {
 function toggleHelp(show) {
   const willShow = (show === undefined) ? elHelp.hidden : show;
   elHelp.hidden = !willShow; if (!willShow) focusSearch();
-  syncOverlay();   // grow the host frame to show the card, or release it
+  if (willShow && !overlayOn) fitHelp(window.innerHeight);   // in-flow: fit inside the field
+  syncOverlay();   // overlay: grow the host frame to show the card, or release it
+}
+// cap the F1 card to the space between its top and `availBottom` (layout px
+// from the top of this document) so it never runs off the bottom; its body
+// scrolls instead. Returns the card's top (its offsetParent is the bar).
+function fitHelp(availBottom) {
+  const top = $("bar").offsetTop + elHelp.offsetTop;
+  elHelp.style.maxHeight = Math.max(120, availBottom - top - 10) + "px";
+  return top;
 }
 
 // ---- keyboard (capture phase — Tab must never leave the iframe) -------------
