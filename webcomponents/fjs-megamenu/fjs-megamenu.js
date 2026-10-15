@@ -465,7 +465,9 @@ function closePanel() {
   openTop = -1; setMode("browse"); panelHide(); zone = "bar";
   elRecentBtn.classList.remove("open");
   markTop();
-  overlayCollapse();
+  // re-sync, not collapse: the responsive drawer may still be open, and a bare
+  // collapse would drop its stacking lift so the host's fields paint over it.
+  syncOverlay();
 }
 function cancelClose() { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } }
 function scheduleClose() { cancelClose(); closeTimer = setTimeout(() => { if (mode === "browse") closePanel(); }, 240); }
