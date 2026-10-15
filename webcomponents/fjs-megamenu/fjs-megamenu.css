@@ -247,6 +247,11 @@ body.overlay #panel {
   box-shadow: 0 20px 54px rgba(0, 0, 0, .5);
 }
 body.overlay.theme-light #panel { box-shadow: 0 20px 54px rgba(20, 30, 45, .20); }
+/* F1 card with nothing else open: paint only down to the bar's bottom
+ * (--barfoot, set by syncOverlay) so the host form shows around the card. */
+html.help-only, html.help-only body.overlay {
+  background: linear-gradient(var(--bg), var(--bg)) top / 100% var(--barfoot, 72px) no-repeat;
+}
 
 /* ---- status bar ----------------------------------------------------------- */
 #status {
