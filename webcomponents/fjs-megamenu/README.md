@@ -54,7 +54,7 @@ WEBCOMPONENT wc = FORMONLY.menu_data,
 ```
 
 (Span the field across grid rows by tagging it once with empty rows below — see
-`examples/ex_megamenu.per`.)
+the example form: `fglpkg docs megamenu ex_megamenu.per`.)
 
 ## PROPERTIES reference
 
@@ -63,7 +63,7 @@ WEBCOMPONENT wc = FORMONLY.menu_data,
 | `title` | string | *(none)* | Hero title above the bar (empty ⇒ no hero). |
 | `subtitle` | string | *(none)* | Hero subtitle. |
 | `brand` | string | `menu` | Logo **text** in the bar (empty ⇒ icon only). |
-| `brandicon` | string | *(4js badge)* | Brand **mark**: an emoji/letter (`🚀`/`A`), an image URL/path (`logo.png`, `data:…`), or `none`. Unset ⇒ the built-in Four Js “4” badge. |
+| `brandicon` | string | *(4js badge)* | Brand **mark**: an emoji/letter (`🚀`/`A`), an image, or `none`. An image is a URL (`https:`, `data:`), a value with a `/`, or a file name with an image extension (`logo.png`); relative values resolve against this folder. A logo that fails to load falls back to the badge. Unset ⇒ the built-in Four Js “4” badge. |
 | `select` | string | `menu_select` | **Lowercase** `ON ACTION` name fired on selection. |
 | `placeholder` | string | `Search…` | Search box placeholder. |
 | `recentslabel` | string | `Recently Selected` | Header of the Recent panel. |
@@ -101,7 +101,7 @@ cross-origin) or with `overlay = "off"`, it silently falls back to the in-flow
 layout, where the field must reserve the panel's height.
 
 So size the field to the bar (e.g. 4 rows) and place real form content directly
-beneath it — see `examples/ex_megamenu.per`. If overlay can't engage in your GBC
+beneath it — see the bundled example (`fglpkg bdl megamenu example`). If overlay can't engage in your GBC
 build, set `overlay = "off"` and give the field enough rows for the panel.
 
 ### Responsive layout
@@ -120,14 +120,17 @@ Booleans/numbers arrive from `fglform` as strings — the widget coerces them.
 
 ```
 host → wc : {"type":"menu","items":[ <node>, … ]}
-            node = { "id", "label", "icon"?, "desc"?, "color"?, "keywords"?, "children"?: [ <node>, … ] }
+            node = { "id", "label", "icon"?, "desc"?, "color"?, "keywords"?, "norecent"?, "children"?: [ <node>, … ] }
 wc → host : {"type":"select","id":"sales.cust.new","label":"New Customer","path":"Sales › Customers"}
 ```
 
 - Every node needs a stable, unique `id`. A **leaf** (no `children`) is what the
   user selects and what is sent back; `path` carries its level breadcrumb.
 - `icon` is an emoji/char; `color` (level-2) tints the category badge;
-  `keywords` adds search terms.
+  `keywords` adds search terms; `norecent` (e.g. `"1"`) keeps a leaf out of the
+  Recent list.
+- `path` is the labels of the leaf's parents joined with ` › ` (U+203A), empty
+  for a top-bar leaf.
 - The widget keeps the last envelope current via `onFlushData`, calls
   `SetFocus()` before the action, and de-dupes re-delivered values, so it is
   safe with multiple instances in one `DIALOG` and immune to GBC re-push loops.
@@ -136,26 +139,26 @@ wc → host : {"type":"select","id":"sales.cust.new","label":"New Customer","pat
 
 ## Building the tree (the 4GL side)
 
-A 1–3 level tree is modeled with **three distinct, non-recursive record types**
-(one per level), using `json_name` for clean keys; an empty `children` array
-marks a leaf. `util.JSON.stringify` serializes the whole thing:
+Use the package's BDL module rather than writing the JSON yourself:
+`MegaMenu.menu()` / `category()` / `action()` add levels 1–3, `noRecent()` flags
+the last-added item, `build()` returns the envelope to assign to the field, and
+`parse()` reads the selection back.
 
 ```4gl
-TYPE t_l3 RECORD id STRING ATTRIBUTES(json_name="id"), label STRING ATTRIBUTES(json_name="label"),
-                 descr STRING ATTRIBUTES(json_name="desc"), icon STRING ATTRIBUTES(json_name="icon"),
-                 keywords STRING ATTRIBUTES(json_name="keywords") END RECORD
-TYPE t_l2 RECORD ... children DYNAMIC ARRAY OF t_l3 ATTRIBUTES(json_name="children") END RECORD
-TYPE t_l1 RECORD ... children DYNAMIC ARRAY OF t_l2 ATTRIBUTES(json_name="children") END RECORD
+IMPORT FGL com.fourjs.megamenu.MegaMenu
 
 FUNCTION build_menu() RETURNS STRING
-    DEFINE items DYNAMIC ARRAY OF t_l1
-    -- fill items (filter by the user's rights here), then:
-    RETURN '{"type":"menu","items":' || util.JSON.stringify(items) || '}'
+    CALL MegaMenu.clear()
+    CALL MegaMenu.menu("sales", "Sales", "💼")
+      CALL MegaMenu.category("sales.cust", "Customers", "Accounts", "👤", "#34d399", "")
+        CALL MegaMenu.action("sales.cust.new", "New Customer", "Create", "➕", "create add")
+    RETURN MegaMenu.build()
 END FUNCTION
 ```
 
-See `examples/ex_megamenu.4gl` for the full builder (with `add_l1`/`add_l2`/`add_l3`
-helpers) and the `ON ACTION menu_select` handler that parses the selection.
+The package's `USERGUIDE.md` (`fglpkg docs megamenu USERGUIDE.md`) documents the
+whole API; the bundled example (`fglpkg docs megamenu example.4gl`) shows a
+full menu and the `ON ACTION menu_select` handler.
 
 ## Recently-Selected (cookies)
 

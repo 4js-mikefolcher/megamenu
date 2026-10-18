@@ -132,8 +132,11 @@ function applyChrome() {
 // Render the configurable brand mark. `brandicon` may be:
 //   ""        → the built-in Four Js "4" badge (default)
 //   "none"    → no icon (brand text only)
-//   a URL / data-URI / path (http(s):, data:, /…, ./…) → an <img> logo
+//   an image: a URL / data-URI (http(s):, data:), a path (anything with a "/"),
+//             or a file name with an image extension ("logo.png") → an <img>
+//             logo; relative values resolve against this component's folder
 //   anything else (an emoji or a letter) → shown as text, tinted with the accent
+const IMAGE_REF = /^(https?:|data:)|\/|\.(png|jpe?g|gif|svg|webp|avif|ico|bmp)([?#].*)?$/i;
 function applyBrandIcon() {
   if (!elBrandIcon) return;
   const v = (OPTS.brandicon || "").trim();
@@ -141,9 +144,12 @@ function applyBrandIcon() {
   if (!v) { elBrandIcon.hidden = false; elBrandIcon.innerHTML = DEFAULT_BRAND_SVG; return; }
   if (/^none$/i.test(v)) { elBrandIcon.hidden = true; elBrandIcon.textContent = ""; return; }
   elBrandIcon.hidden = false;
-  if (/^(https?:|data:|\.{0,2}\/)/i.test(v)) {
+  if (IMAGE_REF.test(v)) {
     const img = document.createElement("img");
-    img.className = "brand-img"; img.alt = ""; img.src = v;
+    img.className = "brand-img"; img.alt = "";
+    // a logo that does not load falls back to the default badge (not a broken image)
+    img.onerror = () => { elBrandIcon.innerHTML = DEFAULT_BRAND_SVG; setHost("brandicon image not found: " + v, "warn"); };
+    img.src = v;
     elBrandIcon.textContent = ""; elBrandIcon.appendChild(img);
   } else {
     elBrandIcon.classList.add("brand-text");

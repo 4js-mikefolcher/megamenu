@@ -33,8 +33,10 @@ WEBCOMPONENT wc = FORMONLY.menu_data,
     COMPONENTTYPE = "fjs-megamenu",
     PROPERTIES = (
         brand       = "Four Js",
-        -- brandicon is optional: an emoji/letter ("🚀"), an image URL/path
-        -- ("logo.png"), or "none". Unset = the built-in Four Js "4" badge.
+        -- brandicon is optional: an emoji/letter ("🚀"), an image ("logo.png",
+        -- "./img/logo.svg", "https://…", "data:…"; a relative path resolves
+        -- against the web component's folder), or "none". Unset = the
+        -- built-in Four Js "4" badge.
         -- brandicon = "🚀",
         accent      = "#16b1a5",
         placeholder = "Search the menu...",
