@@ -73,7 +73,7 @@ FUNCTION describe_selection(p_json STRING) RETURNS STRING
     -- END CASE
 
     IF sel.path.getLength() > 0 THEN
-        RETURN sel.path || " > " || lbl || "   [" || sel.id || "]"
+        RETURN sel.path || " › " || lbl || "   [" || sel.id || "]"   -- same separator as the path
     END IF
     RETURN lbl || "   [" || sel.id || "]"
 END FUNCTION

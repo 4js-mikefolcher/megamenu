@@ -147,8 +147,12 @@ function applyBrandIcon() {
   if (IMAGE_REF.test(v)) {
     const img = document.createElement("img");
     img.className = "brand-img"; img.alt = "";
-    // a logo that does not load falls back to the default badge (not a broken image)
-    img.onerror = () => { elBrandIcon.innerHTML = DEFAULT_BRAND_SVG; setHost("brandicon image not found: " + v, "warn"); };
+    // a logo that does not load falls back to the default badge (not a broken
+    // image) — unless a newer brandicon has replaced it while it was loading
+    img.onerror = () => {
+      if (img.parentNode !== elBrandIcon) return;
+      elBrandIcon.innerHTML = DEFAULT_BRAND_SVG; setHost("brandicon image not found: " + v, "warn");
+    };
     img.src = v;
     elBrandIcon.textContent = ""; elBrandIcon.appendChild(img);
   } else {
@@ -315,6 +319,10 @@ function overlayCollapse() {
 
 // close everything (drawer + panel + help) — used by outside-tap dismissal.
 function dismissMenu() { elHelp.hidden = true; setNavOpen(false); closePanel(); }
+function menuOpen() {
+  return document.body.classList.contains("nav-open") || !elHelp.hidden ||
+         (elPanel && elPanel.classList.contains("open"));
+}
 
 // A pointerdown that reaches the HOST document happened OUTSIDE our iframe (taps
 // inside it are consumed by the iframe), i.e. outside the menu — so dismiss any
@@ -325,8 +333,7 @@ function hookHostDismiss() {
     const pdoc = frameEl.ownerDocument;
     if (!pdoc) return;
     pdoc.addEventListener("pointerdown", () => {
-      if (overlayOn && (document.body.classList.contains("nav-open") || !elHelp.hidden ||
-          (elPanel && elPanel.classList.contains("open")))) dismissMenu();
+      if (overlayOn && menuOpen()) dismissMenu();
     }, true);
     hostDismissHooked = true;
   } catch (e) {}
@@ -769,6 +776,16 @@ function claimFocus() {
   if (!hasFocus && hasHost() && gICAPI.SetFocus) gICAPI.SetFocus();
 }
 document.addEventListener("mousedown", claimFocus, true);
+// Focus leaving this frame (a click on a host field, another window) closes an
+// open menu: the outside-click signal for hosts whose clicks never reach
+// hookHostDismiss (no reachable host document, e.g. the GDC). Act only if the
+// focus is still gone a moment later, so the front end moving focus while it
+// answers SetFocus() cannot close a menu the user just clicked into.
+let blurTimer = null;
+window.addEventListener("blur", () => {
+  clearTimeout(blurTimer);
+  blurTimer = setTimeout(() => { if (!document.hasFocus() && menuOpen()) dismissMenu(); }, 150);
+});
 elPanel.addEventListener("mouseenter", cancelClose);
 elPanel.addEventListener("mouseleave", scheduleClose);
 $("bar").addEventListener("mouseleave", scheduleClose);
