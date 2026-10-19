@@ -1,6 +1,10 @@
--- ex_megamenu.4gl — demo host for the fjs-megamenu web component.
--- (named ex_* so it never collides with the package module
---  com.fourjs.megamenu.MegaMenu, which differs only by letter case)
+-- example.4gl — demo host for the fjs-megamenu web component.
+-- Shipped in the package (a "programs" entry): run it with
+--   fglpkg bdl megamenu example
+-- Its form keeps the distinct name ex_megamenu: the package's form folder is
+-- on every consumer's FGLRESOURCEPATH, so a generic form name could shadow
+-- theirs. (Never name either file "megamenu": it would collide with the
+-- package module MegaMenu on case-insensitive file systems.)
 --
 -- Shows the user-friendly package API: build the 1-to-3 level menu with
 -- MegaMenu.menu()/category()/action(), push it through one STRING field, and
@@ -55,7 +59,9 @@ FUNCTION describe_selection(p_json STRING) RETURNS STRING
     DEFINE lbl STRING
     VAR sel = MegaMenu.parse(p_json: p_json)
 
-    IF sel.id IS NULL OR sel.id == "" THEN
+    -- "" is NULL in Genero, so `x != ""` is never TRUE: test getLength()
+    -- (0 for NULL too) to know whether a string has content.
+    IF sel.id.getLength() == 0 THEN
         RETURN "(no selection)"
     END IF
     LET lbl = sel.label
@@ -66,8 +72,8 @@ FUNCTION describe_selection(p_json STRING) RETURNS STRING
     --     ...
     -- END CASE
 
-    IF sel.path IS NOT NULL AND sel.path != "" THEN
-        RETURN sel.path || " > " || lbl || "   [" || sel.id || "]"
+    IF sel.path.getLength() > 0 THEN
+        RETURN sel.path || " › " || lbl || "   [" || sel.id || "]"   -- same separator as the path
     END IF
     RETURN lbl || "   [" || sel.id || "]"
 END FUNCTION

@@ -132,8 +132,11 @@ function applyChrome() {
 // Render the configurable brand mark. `brandicon` may be:
 //   ""        → the built-in Four Js "4" badge (default)
 //   "none"    → no icon (brand text only)
-//   a URL / data-URI / path (http(s):, data:, /…, ./…) → an <img> logo
+//   an image: a URL / data-URI (http(s):, data:), a path (anything with a "/"),
+//             or a file name with an image extension ("logo.png") → an <img>
+//             logo; relative values resolve against this component's folder
 //   anything else (an emoji or a letter) → shown as text, tinted with the accent
+const IMAGE_REF = /^(https?:|data:)|\/|\.(png|jpe?g|gif|svg|webp|avif|ico|bmp)([?#].*)?$/i;
 function applyBrandIcon() {
   if (!elBrandIcon) return;
   const v = (OPTS.brandicon || "").trim();
@@ -141,9 +144,16 @@ function applyBrandIcon() {
   if (!v) { elBrandIcon.hidden = false; elBrandIcon.innerHTML = DEFAULT_BRAND_SVG; return; }
   if (/^none$/i.test(v)) { elBrandIcon.hidden = true; elBrandIcon.textContent = ""; return; }
   elBrandIcon.hidden = false;
-  if (/^(https?:|data:|\.{0,2}\/)/i.test(v)) {
+  if (IMAGE_REF.test(v)) {
     const img = document.createElement("img");
-    img.className = "brand-img"; img.alt = ""; img.src = v;
+    img.className = "brand-img"; img.alt = "";
+    // a logo that does not load falls back to the default badge (not a broken
+    // image) — unless a newer brandicon has replaced it while it was loading
+    img.onerror = () => {
+      if (img.parentNode !== elBrandIcon) return;
+      elBrandIcon.innerHTML = DEFAULT_BRAND_SVG; setHost("brandicon image not found: " + v, "warn");
+    };
+    img.src = v;
     elBrandIcon.textContent = ""; elBrandIcon.appendChild(img);
   } else {
     elBrandIcon.classList.add("brand-text");
@@ -265,19 +275,28 @@ function syncOverlay() {
   try {
     const navOpen = document.body.classList.contains("nav-open");      // responsive drawer (hamburger)
     const panelOpen = elPanel && elPanel.classList.contains("open");   // mega drop panel
-    if (!navOpen && !panelOpen) { overlayCollapse(); return; }
+    const helpOpen = elHelp && !elHelp.hidden;                          // F1 card (hangs below the bar)
+    // the card alone grows the frame just to show it: keep the frame see-through
+    // below the bar so the host form shows around the card (see .help-only)
+    document.documentElement.classList.toggle("help-only", helpOpen && !panelOpen && !navOpen);
+    if (!navOpen && !panelOpen && !helpOpen) { overlayCollapse(); return; }
     floatFrame();
     frameEl.style.zIndex = "100001";
     const w = frameWin();
     let avail = 99999;
     if (w) { const top = frameEl.getBoundingClientRect().top; avail = Math.max(160, w.innerHeight - top - 12); }
     const bar = barFootprint();   // includes the drawer's height when nav-open
+    document.documentElement.style.setProperty("--barfoot", bar + "px");
     let h;
     if (panelOpen) {
       elPanel.style.maxHeight = Math.max(140, Math.min(460, avail - bar)) + "px";
       h = bar + elPanel.offsetHeight + 10;
     } else {
       h = bar + 6;                // hamburger drawer only — fit the bar + drawer
+    }
+    if (helpOpen) {               // fit the card to the host space, then grow the frame to its bottom
+      const top = fitHelp(avail);
+      h = Math.max(h, Math.ceil(top + elHelp.offsetHeight + 16));   // + room for its shadow
     }
     frameEl.style.height = Math.min(h, avail) + "px";
     // scrollIntoView (markCard/markL2) can scroll the bar off the top while the
@@ -298,8 +317,12 @@ function overlayCollapse() {
   } catch (e) {}
 }
 
-// close everything (drawer + panel) — used by outside-tap dismissal.
-function dismissMenu() { setNavOpen(false); closePanel(); }
+// close everything (drawer + panel + help) — used by outside-tap dismissal.
+function dismissMenu() { elHelp.hidden = true; setNavOpen(false); closePanel(); }
+function menuOpen() {
+  return document.body.classList.contains("nav-open") || !elHelp.hidden ||
+         (elPanel && elPanel.classList.contains("open"));
+}
 
 // A pointerdown that reaches the HOST document happened OUTSIDE our iframe (taps
 // inside it are consumed by the iframe), i.e. outside the menu — so dismiss any
@@ -310,8 +333,7 @@ function hookHostDismiss() {
     const pdoc = frameEl.ownerDocument;
     if (!pdoc) return;
     pdoc.addEventListener("pointerdown", () => {
-      if (overlayOn && (document.body.classList.contains("nav-open") ||
-          (elPanel && elPanel.classList.contains("open")))) dismissMenu();
+      if (overlayOn && menuOpen()) dismissMenu();
     }, true);
     hostDismissHooked = true;
   } catch (e) {}
@@ -465,7 +487,9 @@ function closePanel() {
   openTop = -1; setMode("browse"); panelHide(); zone = "bar";
   elRecentBtn.classList.remove("open");
   markTop();
-  overlayCollapse();
+  // re-sync, not collapse: the responsive drawer may still be open, and a bare
+  // collapse would drop its stacking lift so the host's fields paint over it.
+  syncOverlay();
 }
 function cancelClose() { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } }
 function scheduleClose() { cancelClose(); closeTimer = setTimeout(() => { if (mode === "browse") closePanel(); }, 240); }
@@ -644,6 +668,16 @@ function toggleNav() {
 function toggleHelp(show) {
   const willShow = (show === undefined) ? elHelp.hidden : show;
   elHelp.hidden = !willShow; if (!willShow) focusSearch();
+  if (willShow && !overlayOn) fitHelp(window.innerHeight);   // in-flow: fit inside the field
+  syncOverlay();   // overlay: grow the host frame to show the card, or release it
+}
+// cap the F1 card to the space between its top and `availBottom` (layout px
+// from the top of this document) so it never runs off the bottom; its body
+// scrolls instead. Returns the card's top (its offsetParent is the bar).
+function fitHelp(availBottom) {
+  const top = $("bar").offsetTop + elHelp.offsetTop;
+  elHelp.style.maxHeight = Math.max(120, availBottom - top - 10) + "px";
+  return top;
 }
 
 // ---- keyboard (capture phase — Tab must never leave the iframe) -------------
@@ -670,8 +704,9 @@ function onKey(e) {
     own(e);
     if (mode === "search" || mode === "recent") { if (mode === "search") elSearch.value = ""; closePanel(); }
     else if (zone === "l3") { zone = "l2"; markCard(); markL2(); }
-    else if (zone === "l2") { closePanel(); }
+    else if (openTop >= 0) { closePanel(); }   // zone l2, or a panel the mouse opened (zone stays bar)
     else if (elSearch.value) { elSearch.value = ""; }
+    else if (document.body.classList.contains("nav-open")) { setNavOpen(false); }
     return;
   }
 
@@ -732,6 +767,25 @@ function tabMove(d) {
 window.addEventListener("keydown", onKey, true);
 
 // ---- mouse: hover-close, outside-click, search/recent ----------------------
+// A press inside the widget takes the keyboard. The item handlers cancel
+// mousedown (to keep the search caret), which also stops the browser moving
+// focus into this frame — so focus the search box ourselves, and ask the
+// dialog to make this the current field.
+function claimFocus() {
+  if (!document.hasFocus()) focusSearch();
+  if (!hasFocus && hasHost() && gICAPI.SetFocus) gICAPI.SetFocus();
+}
+document.addEventListener("mousedown", claimFocus, true);
+// Focus leaving this frame (a click on a host field, another window) closes an
+// open menu: the outside-click signal for hosts whose clicks never reach
+// hookHostDismiss (no reachable host document, e.g. the GDC). Act only if the
+// focus is still gone a moment later, so the front end moving focus while it
+// answers SetFocus() cannot close a menu the user just clicked into.
+let blurTimer = null;
+window.addEventListener("blur", () => {
+  clearTimeout(blurTimer);
+  blurTimer = setTimeout(() => { if (!document.hasFocus() && menuOpen()) dismissMenu(); }, 150);
+});
 elPanel.addEventListener("mouseenter", cancelClose);
 elPanel.addEventListener("mouseleave", scheduleClose);
 $("bar").addEventListener("mouseleave", scheduleClose);

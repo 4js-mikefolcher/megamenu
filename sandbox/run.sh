@@ -25,13 +25,13 @@ rm -rf "$APP"
 mkdir -p "$APP/webcomponents/fjs-megamenu" "$APP/com/fourjs/megamenu"
 cp "$WC"/fjs-megamenu.html "$WC"/fjs-megamenu.css "$WC"/fjs-megamenu.js \
    "$APP/webcomponents/fjs-megamenu/"
-cp "$EX"/ex_megamenu.4gl "$EX"/ex_megamenu.per "$APP/"
+cp "$EX"/example.4gl "$EX"/ex_megamenu.per "$APP/"
 cp "$PKG"/MegaMenu.4gl "$APP/com/fourjs/megamenu/"
 
 echo "▶ compiling package module + form + program"
 export FGLLDPATH="$APP:${FGLLDPATH:-}"
 ( cd "$APP/com/fourjs/megamenu" && fglcomp -M MegaMenu.4gl )   # -> .42m beside the source
-( cd "$APP" && fglform ex_megamenu.per && fglcomp -M ex_megamenu.4gl )
+( cd "$APP" && fglform ex_megamenu.per && fglcomp -M example.4gl )
 
 echo "▶ installing GAS app config → $APPDATA/app/megamenu.xcf"
 cat > "$APPDATA/app/megamenu.xcf" <<EOF
@@ -51,7 +51,7 @@ cat > "$APPDATA/app/megamenu.xcf" <<EOF
     <!-- resolve IMPORT FGL com.fourjs.megamenu.MegaMenu at runtime -->
     <ENVIRONMENT_VARIABLE Id="FGLLDPATH">$APP</ENVIRONMENT_VARIABLE>
     <PATH>$APP</PATH>
-    <MODULE>ex_megamenu.42m</MODULE>
+    <MODULE>example.42m</MODULE>
   </EXECUTION>
 </APPLICATION>
 EOF
