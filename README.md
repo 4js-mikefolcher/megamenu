@@ -33,9 +33,14 @@ eval "$(fglpkg env)"             # adds the BDL module to FGLLDPATH and the
                                  # web component to FGLIMAGEPATH / WEB_COMPONENT_DIRECTORY
 ```
 
-This installs two things: the **BDL module** `com.fourjs.megamenu.MegaMenu` and
-the **web component** `fjs-megamenu`. For GAS, add the printed
+This installs the **BDL module** `com.fourjs.megamenu.MegaMenu`, the **web
+component** `fjs-megamenu`, and a runnable **example**. For GAS, add the printed
 `.fglpkg/webcomponents` path to your `.xcf` `<WEB_COMPONENT_DIRECTORY>`.
+
+```bash
+fglpkg bdl megamenu example          # run the bundled demo (GDC / direct mode)
+fglpkg docs megamenu example.4gl     # print its sources (also ex_megamenu.per)
+```
 
 ## Use it — the BDL API
 
@@ -107,15 +112,21 @@ Full PROPERTIES (incl. `theme`, `subtitle`, `placeholder`, `recentslabel`,
 fglpkg.json                          package manifest (mixed: BDL + webcomponent)
 com/fourjs/megamenu/MegaMenu.4gl     the user-facing BDL builder API
 webcomponents/fjs-megamenu/          the web component runtime (html/css/js)
-examples/ex_megamenu.{4gl,per}       demo host that consumes the API
-tests/test_MegaMenu.4gl              fglunit tests (+ run-tests.sh)
-sandbox/run.sh                       stage → compile → run the demo under GAS
+examples/example.4gl, ex_megamenu.per  the demo (`fglpkg bdl megamenu example`)
+tests/test_MegaMenu.4gl              fglunit tests (+ run-tests.sh)      repository only
+sandbox/run.sh                       stage → compile → run under GAS     repository only
 ```
+
+The package ships the compiled module, the web component, the docs, and the
+example (compiled into `com/fourjs/megamenu/`, sources in `examples/`). The
+tests and the sandbox are only in the
+[source repository](https://github.com/4js-mikefolcher/megamenu).
 
 ## Develop / test / run
 
 ```bash
-bash tests/run-tests.sh            # fglunit: 12 tests
+fglpkg install                     # once: the fglunit devDependency
+bash tests/run-tests.sh            # fglunit: 13 tests
 cd sandbox && ./run.sh             # → http://localhost:6394/ua/r/megamenu (GBC)
 ```
 
@@ -126,10 +137,10 @@ survive the gICAPI connector. Standalone (no Genero): open
 
 ## Publish
 
-Compile the module, then publish (per-Genero-major variant):
+Compile what the package ships, then publish (per-Genero-major variant):
 
 ```bash
-( cd com/fourjs/megamenu && fglcomp -M MegaMenu.4gl )   # the .42m the package ships
-fglpkg pack --list                                       # dry validation
-fglpkg publish                                           # to $FGLPKG_REGISTRY (needs login)
+make build              # MegaMenu.42m + the example program/form → com/fourjs/megamenu/
+fglpkg pack --list      # dry validation
+fglpkg publish          # to $FGLPKG_REGISTRY (needs login)
 ```

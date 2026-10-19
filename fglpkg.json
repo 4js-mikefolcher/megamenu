@@ -4,7 +4,7 @@
   "description": "fjs-megamenu: a dark/light, GBC-themed mega-menu web component (1-3 levels, type-ahead search, animated, cookie-backed recents) plus a user-friendly Genero BDL builder API.",
   "author": "Four Js <mifo@4js.com>",
   "license": "MIT",
-  "repository": "https://github.com/4js-ai/fjs-megamenu",
+  "repository": "https://github.com/4js-mikefolcher/megamenu",
   "keywords": [
     "webcomponent",
     "menu",
@@ -22,11 +22,17 @@
   },
   "root": "com/fourjs/megamenu",
   "files": [
-    "*.42m"
+    "*.42m",
+    "*.42f"
+  ],
+  "programs": [
+    "example"
   ],
   "docs": [
     "README.md",
-    "USERGUIDE.md"
+    "USERGUIDE.md",
+    "examples/example.4gl",
+    "examples/ex_megamenu.per"
   ],
   "webcomponents": [
     "fjs-megamenu"

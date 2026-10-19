@@ -25,12 +25,13 @@ handle selections. No JavaScript required.
 
 ## 1. What you get
 
-The package ships two things:
+The package ships three things:
 
 | Artifact | Name | Purpose |
 |---|---|---|
 | Genero BDL module | `com.fourjs.megamenu.MegaMenu` | Build the menu tree and parse the selection. |
 | Web component | `fjs-megamenu` (a `COMPONENTTYPE`) | The dark/light, animated, searchable mega-menu UI. |
+| Example program | `example` | A complete demo with its sources — run it with `fglpkg bdl megamenu example` (see [Run the bundled example](#run-the-bundled-example)). |
 
 The menu is a **1‑to‑3 level tree**:
 
@@ -83,6 +84,8 @@ A minimal, complete two-file application.
 
 ```per
 LAYOUT (TEXT="Application Menu", MINWIDTH=110, MINHEIGHT=30)
+-- Tag the field ONCE; the empty rows below extend it.
+-- (Do NOT repeat [wc] on each row: that makes N copies.)
 GRID
 {
 [wc                                                                          ]
@@ -90,9 +93,9 @@ GRID
 [                                                                            ]
 [                                                                            ]
 [                                                                            ]
-}                                              -- tag the field ONCE; the empty
-END                                            -- rows below extend it (do NOT
-END                                            -- repeat [wc] — that makes N copies)
+}
+END
+END
 
 ATTRIBUTES
 WEBCOMPONENT wc = FORMONLY.menu_data,
@@ -162,6 +165,32 @@ fglcomp -M menu.4gl
 fglrun menu.42m            # under GDC; or deploy as a GAS app for GBC
 ```
 
+### Run the bundled example
+
+The package also ships a complete demo: the menu bar above a page of form
+fields (the [overlay layout](#overlay-mode--the-bar-is-the-only-thing-that-takes-space)),
+a *Reload menu* action, and a field showing what the backend received on each
+selection. Run it with:
+
+```bash
+fglpkg bdl megamenu example
+```
+
+`fglpkg bdl` applies the package environment itself and starts the program
+with `fglrun`, so it displays in the GDC (set `FGLSERVER` as for any
+direct-mode program). To see it in the GBC, deploy it as a GAS application
+instead: `PATH` is the installed package's `com/fourjs/megamenu` directory,
+`MODULE` is `example.42m`, plus the settings in
+[Deployment notes](#12-deployment-notes).
+
+Its sources are installed with the package, in its `examples/` directory
+(`.fglpkg/packages/megamenu/examples/` for a project install). To print them:
+
+```bash
+fglpkg docs megamenu example.4gl
+fglpkg docs megamenu ex_megamenu.per
+```
+
 ---
 
 ## 4. The BDL API
@@ -202,7 +231,7 @@ PUBLIC TYPE t_selection RECORD
     kind  STRING,   -- always "select"
     id    STRING,   -- the chosen action id
     label STRING,   -- its label
-    path  STRING    -- breadcrumb, e.g. "Sales > Customers"
+    path  STRING    -- breadcrumb, e.g. "Sales › Customers"
 END RECORD
 ```
 
@@ -316,7 +345,7 @@ Set these in the `.per` `PROPERTIES (...)` block. All are optional.
 | `title` | *(none)* | Hero title shown above the bar. Empty ⇒ no hero. |
 | `subtitle` | *(none)* | Hero subtitle. |
 | `brand` | `menu` | Logo **text** in the bar (e.g. your app or company name). Empty ⇒ icon only. |
-| `brandicon` | *(4js badge)* | Brand **mark**. An emoji/letter (`"🚀"`, `"A"`), an image URL/path (`"logo.png"`, `"data:image/svg+xml,…"`), or `"none"` to hide it. Unset ⇒ the built-in Four Js “4” badge. |
+| `brandicon` | *(4js badge)* | Brand **mark**: an emoji/letter (`"🚀"`, `"A"`), an image (`"logo.png"`, `"https://…/logo.svg"`, `"data:image/svg+xml,…"` — see below), or `"none"` to hide it. Unset ⇒ the built-in Four Js “4” badge. |
 | `select` | `menu_select` | **Lowercase** `ON ACTION` name fired when an action is chosen. |
 | `placeholder` | `Search…` | Search box placeholder text. |
 | `theme` | `auto` | `auto` follows the GBC host theme; or force `dark` / `light`. |
@@ -329,6 +358,16 @@ Set these in the `.per` `PROPERTIES (...)` block. All are optional.
 
 Booleans and numbers may arrive as strings from `fglform`; the widget coerces
 them.
+
+**`brandicon` images.** A value is shown as an image when it is a URL
+(`http://`, `https://`, `data:`), contains a `/` (`"./img/logo.png"`,
+`"/static/logo.svg"`), or ends in an image extension (`.png`, `.jpg`/`.jpeg`,
+`.gif`, `.svg`, `.webp`, `.avif`, `.ico`, `.bmp` — so `"logo.png"` works);
+anything else is shown as text. A relative value resolves against the web
+component's own folder (`…/webcomponents/fjs-megamenu/`), which `fglpkg`
+replaces on every install or upgrade, so for a logo you deploy prefer a
+`data:` URI or a URL your web server serves. If the image cannot be loaded,
+the default badge is shown instead.
 
 ---
 
@@ -366,7 +405,8 @@ growing it over the form while a menu is open, then shrinking back to the bar on
 close. If the host can't be reached (cross-origin) it falls back to the in-flow
 layout — there the field must be tall enough to show the panel. Set
 `overlay = "off"` to force the in-flow layout (and give the field more rows).
-See `examples/ex_megamenu.per` for the bar-height field + content below it.
+The [bundled example](#run-the-bundled-example)'s form (`ex_megamenu.per`)
+uses this layout: a bar-height field with the page content below it.
 
 ### Responsive layout
 
@@ -442,8 +482,9 @@ recents cookie (the node carries `"norecent":"1"` in the envelope).
 - **Web component discovery.** For GAS, add the installed `.fglpkg/webcomponents`
   directory to the application's `<WEB_COMPONENT_DIRECTORY>`.
 
-See [`sandbox/run.sh`](sandbox/run.sh) for a complete, working local GAS launch
-that does all of the above.
+The source repository's [`sandbox/run.sh`](https://github.com/4js-mikefolcher/megamenu/blob/main/sandbox/run.sh)
+is a complete, working local GAS launch that does all of the above (it is not
+part of the installed package).
 
 ---
 
@@ -455,8 +496,15 @@ the layout tag. If your field is `EDIT lastsel = FORMONLY.lastsel`, use the
 column name `lastsel` (not the tag) in the program. Easiest: make the tag and
 column the same name.
 
-**Emoji icons show as blank/boxes.** The DVM session isn't UTF‑8 — set `LANG` /
-`LC_ALL` / `FGL_LENGTH_SEMANTICS` as in [Deployment](#12-deployment-notes).
+**Emoji icons show as question marks (`????`).** The DVM session isn't UTF‑8,
+so each multi-byte icon arrives as a row of `?` — set `LANG` / `LC_ALL` /
+`FGL_LENGTH_SEMANTICS` as in [Deployment](#12-deployment-notes).
+
+**`brandicon` shows the “4” badge instead of my logo.** The image could not be
+loaded: check the path (a relative one resolves against the web component's
+folder — see [PROPERTIES](#8-properties-reference)). **It shows the file name
+as text:** the value is not recognized as an image — give it an image
+extension, a `/`, or a URL scheme.
 
 **The menu doesn't appear (empty area).** Either the web component wasn't found
 (check `COMPONENTTYPE`/`WEB_COMPONENT_DIRECTORY`/`FGLIMAGEPATH`) or the field got
@@ -485,10 +533,12 @@ contract over the single `STRING` field is:
 host → widget : {"type":"menu","items":[ <node>, … ]}
                 node = { "id", "label", "icon"?, "desc"?, "color"?, "keywords"?,
                          "norecent"?, "children"?: [ <node>, … ] }
-widget → host : {"type":"select","id":"…","label":"…","path":"A > B"}
+widget → host : {"type":"select","id":"…","label":"…","path":"A › B"}
 ```
 
-`MegaMenu.build()` produces the first; `MegaMenu.parse()` reads the second. A
+`MegaMenu.build()` produces the first; `MegaMenu.parse()` reads the second.
+`path` is the labels of the chosen item's parents, joined with ` › ` (U+203A);
+it is empty for a top-bar item. A
 node with no (or empty) `children` is a leaf. A leaf whose `"norecent"` is set
 (e.g. `"1"`) is selectable but is never added to the "Recent" list. The widget de-dupes re-delivered
 values and ignores echoed `select` envelopes, so it is safe with GBC's repeated
@@ -498,15 +548,17 @@ field pushes and with multiple instances in one `DIALOG`.
 
 ## 15. Testing
 
-The package ships fglunit tests for the BDL API:
+The [source repository](https://github.com/4js-mikefolcher/megamenu) has fglunit tests for the BDL API (they are
+not part of the installed package). From a clone:
 
 ```bash
+fglpkg install                    # once: installs the fglunit devDependency
 bash tests/run-tests.sh           # compiles + runs the suite (terminal mode)
 ```
 
 They cover the builder, the 1/2/3‑level structure, `build()` JSON, `parse()`
 round-trip and bad-input handling, and JSON escaping. Model your own tests on
-[`tests/test_MegaMenu.4gl`](tests/test_MegaMenu.4gl).
+[`tests/test_MegaMenu.4gl`](https://github.com/4js-mikefolcher/megamenu/blob/main/tests/test_MegaMenu.4gl).
 
 ---
 
@@ -515,9 +567,10 @@ round-trip and bad-input handling, and JSON escaping. Model your own tests on
 To publish a new version (or your own fork):
 
 ```bash
-( cd com/fourjs/megamenu && fglcomp -M MegaMenu.4gl )   # the .42m the package ships
-fglpkg pack --list                                       # dry validation (writes nothing)
-fglpkg publish                                           # to $FGLPKG_REGISTRY (needs login)
+make build              # compiles what the package ships: MegaMenu.42m plus the
+                        # example program + form, into com/fourjs/megamenu/
+fglpkg pack --list      # dry validation (writes nothing)
+fglpkg publish          # to $FGLPKG_REGISTRY (needs login)
 ```
 
 `fglpkg` ships the compiled module per Genero major version (a "variant"); the
